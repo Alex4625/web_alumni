@@ -2,22 +2,50 @@
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "env": [
-    "TIDB_HOST",
-    "TIDB_PORT",
-    "TIDB_DATABASE",
-    "TIDB_USER",
-    "TIDB_PASSWORD",
-    "TIDB_ENABLE_SSL",
-    "CLOUDINARY_CLOUD_NAME",
-    "CLOUDINARY_API_KEY",
-    "CLOUDINARY_API_SECRET",
-    "SESSION_SECRET",
-    "JWT_SECRET",
-    "BCRYPT_ROUNDS",
-    "NODE_ENV",
-    "VERCEL_URL"
-  ],
+  "env": {
+    "TIDB_HOST": {
+      "required": true
+    },
+    "TIDB_PORT": {
+      "required": true
+    },
+    "TIDB_DATABASE": {
+      "required": true
+    },
+    "TIDB_USER": {
+      "required": true
+    },
+    "TIDB_PASSWORD": {
+      "required": true
+    },
+    "TIDB_ENABLE_SSL": {
+      "required": false
+    },
+    "CLOUDINARY_CLOUD_NAME": {
+      "required": true
+    },
+    "CLOUDINARY_API_KEY": {
+      "required": true
+    },
+    "CLOUDINARY_API_SECRET": {
+      "required": true
+    },
+    "SESSION_SECRET": {
+      "required": true
+    },
+    "JWT_SECRET": {
+      "required": true
+    },
+    "BCRYPT_ROUNDS": {
+      "required": false
+    },
+    "NODE_ENV": {
+      "required": false
+    },
+    "VERCEL_URL": {
+      "required": false
+    }
+  },
   "functions": {
     "api/**/*.js": {
       "memory": 1024,
