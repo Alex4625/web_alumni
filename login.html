@@ -1,0 +1,433 @@
+<!-- /login.html -->
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Login ke Platform Alumni SMA" />
+    <title>Login - Website Alumni SMA</title>
+
+    <!-- CSS GLOBAL & LOGIN -->
+    <link rel="stylesheet" href="/css/style.global.css" />
+    <link rel="stylesheet" href="/css/style.login.css" />
+  </head>
+  <body>
+    <!-- LOGIN PAGE CONTAINER -->
+    <div class="login-page">
+      <!-- HERO SECTION (LEFT) -->
+      <div class="login-hero">
+        <div class="login-hero-content">
+          <h1>Website Alumni SMA</h1>
+          <p>Platform komunitas alumni untuk berbagi pengalaman, memperluas jaringan profesional, dan tetap terhubung dengan sesama alumni.</p>
+
+          <div class="login-hero-features">
+            <div class="login-feature">
+              <div class="login-feature-icon"></div>
+              <div class="login-feature-text">Direktori alumni lengkap dengan data kontak</div>
+            </div>
+            <div class="login-feature">
+              <div class="login-feature-icon"></div>
+              <div class="login-feature-text">Bagikan cerita dan pengalaman Anda</div>
+            </div>
+            <div class="login-feature">
+              <div class="login-feature-icon"></div>
+              <div class="login-feature-text">Galeri foto acara dan kebersamaan</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORM SECTION (RIGHT) -->
+      <div class="login-form-container">
+        <div class="login-form-wrapper">
+          <div class="login-form-title">
+            <h2>Masuk</h2>
+            <p>Gunakan akun Anda untuk mengakses platform</p>
+          </div>
+
+          <!-- ERROR MESSAGE -->
+          <div class="login-form-error" id="errorMessage"></div>
+
+          <!-- SUCCESS MESSAGE -->
+          <div class="login-form-success" id="successMessage"></div>
+
+          <!-- LOGIN FORM -->
+          <form id="loginForm" class="login-form">
+            <!-- USERNAME FIELD -->
+            <div class="login-form-group">
+              <label for="username" class="required">Username</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="Masukkan username Anda"
+                required
+                autocomplete="username"
+                aria-label="Username"
+              />
+            </div>
+
+            <!-- PASSWORD FIELD -->
+            <div class="login-form-group">
+              <label for="password" class="required">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Masukkan password Anda"
+                required
+                autocomplete="current-password"
+                aria-label="Password"
+              />
+            </div>
+
+            <!-- REMEMBER ME & FORGOT PASSWORD -->
+            <div class="login-form-remember">
+              <label>
+                <input type="checkbox" id="rememberMe" name="rememberMe" />
+                Ingat saya
+              </label>
+              <a href="#forgot-password">Lupa password?</a>
+            </div>
+
+            <!-- SUBMIT BUTTON -->
+            <button type="submit" class="login-form-submit" id="submitBtn">
+              Masuk
+            </button>
+          </form>
+
+          <!-- FOOTER TEXT -->
+          <div class="login-form-footer">
+            Belum punya akun? <a href="/register.html">Hubungi admin untuk pendaftaran</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIN LOGIC -->
+    <script>
+      /**
+       * LOGIN PAGE LOGIC
+       *
+       * Alur:
+       * 1. Listen form submit event
+       * 2. Validate input client-side
+       * 3. Disable button & show loading state
+       * 4. Send POST request ke /api/auth/login
+       * 5. Handle response:
+       *    - Success: Save token, redirect ke dashboard
+       *    - Error: Show error message
+       */
+
+      // ============================================
+      // CONSTANTS
+      // ============================================
+      const LOGIN_API = '/api/auth/login';
+      const TOKEN_KEY = 'auth_token';
+      const USER_KEY = 'auth_user';
+      const DASHBOARD_ROUTES = {
+        super_admin: '/dashboard-super-admin.html',
+        admin: '/dashboard-admin.html',
+        alumni: '/dashboard-alumni.html',
+      };
+
+      // ============================================
+      // DOM ELEMENTS
+      // ============================================
+      const loginForm = document.getElementById('loginForm');
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+      const submitBtn = document.getElementById('submitBtn');
+      const errorMessage = document.getElementById('errorMessage');
+      const successMessage = document.getElementById('successMessage');
+      const rememberMeCheckbox = document.getElementById('rememberMe');
+
+      // ============================================
+      // HELPER: SHOW ERROR MESSAGE
+      // ============================================
+      /**
+       * Tampilkan error message dengan animasi
+       *
+       * @param {string} message - Pesan error
+       * @param {number} duration - Durasi tampil (ms), default: -1 (permanent)
+       */
+      function showError(message, duration = -1) {
+        errorMessage.textContent = message;
+        errorMessage.classList.add('show');
+        successMessage.classList.remove('show');
+
+        if (duration > 0) {
+          setTimeout(() => {
+            errorMessage.classList.remove('show');
+          }, duration);
+        }
+      }
+
+      // ============================================
+      // HELPER: SHOW SUCCESS MESSAGE
+      // ============================================
+      function showSuccess(message, duration = 3000) {
+        successMessage.textContent = message;
+        successMessage.classList.add('show');
+        errorMessage.classList.remove('show');
+
+        if (duration > 0) {
+          setTimeout(() => {
+            successMessage.classList.remove('show');
+          }, duration);
+        }
+      }
+
+      // ============================================
+      // HELPER: VALIDATE INPUT
+      // ============================================
+      /**
+       * Validasi input form client-side
+       *
+       * Checks:
+       * 1. Username tidak kosong & min 3 chars
+       * 2. Password tidak kosong & min 6 chars
+       *
+       * @returns {boolean} - True jika valid
+       */
+      function validateInput() {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!username || username.length < 3) {
+          showError('Username harus minimal 3 karakter');
+          usernameInput.focus();
+          return false;
+        }
+
+        if (!password || password.length < 6) {
+          showError('Password harus minimal 6 karakter');
+          passwordInput.focus();
+          return false;
+        }
+
+        return true;
+      }
+
+      // ============================================
+      // HELPER: SET LOADING STATE
+      // ============================================
+      /**
+       * Set button ke loading state
+       *
+       * @param {boolean} isLoading - True untuk loading, false untuk normal
+       */
+      function setLoading(isLoading) {
+        submitBtn.disabled = isLoading;
+
+        if (isLoading) {
+          submitBtn.classList.add('loading');
+          submitBtn.textContent = 'Sedang memproses...';
+          usernameInput.disabled = true;
+          passwordInput.disabled = true;
+        } else {
+          submitBtn.classList.remove('loading');
+          submitBtn.textContent = 'Masuk';
+          usernameInput.disabled = false;
+          passwordInput.disabled = false;
+        }
+      }
+
+      // ============================================
+      // HELPER: SAVE TOKEN & USER DATA
+      // ============================================
+      /**
+       * Simpan JWT token & user data ke localStorage
+       *
+       * Data yang disimpan:
+       * - Token (untuk Authorization header)
+       * - User data (user_id, username, role, etc)
+       * - Timestamp login
+       *
+       * @param {string} token - JWT token dari server
+       * @param {object} user - User data
+       */
+      function saveAuthData(token, user) {
+        // Simpan token
+        localStorage.setItem(TOKEN_KEY, token);
+
+        // Simpan user data
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+
+        // Simpan timestamp (optional, untuk track session duration)
+        localStorage.setItem('auth_timestamp', new Date().getTime());
+
+        // Jika remember me checked, simpan username
+        if (rememberMeCheckbox.checked) {
+          localStorage.setItem('remembered_username', usernameInput.value);
+        }
+      }
+
+      // ============================================
+      // HELPER: REDIRECT KE DASHBOARD
+      // ============================================
+      /**
+       * Redirect ke dashboard sesuai role user
+       *
+       * @param {string} role - User role (super_admin, admin, alumni)
+       */
+      function redirectToDashboard(role) {
+        const route = DASHBOARD_ROUTES[role];
+
+        if (route) {
+          showSuccess('Login berhasil! Sedang mengarahkan...');
+          setTimeout(() => {
+            window.location.href = route;
+          }, 1000);
+        } else {
+          showError('Role tidak dikenali. Hubungi administrator.');
+        }
+      }
+
+      // ============================================
+      // MAIN: HANDLE LOGIN SUBMIT
+      // ============================================
+      /**
+       * Handle form submit event
+       *
+       * Alur:
+       * 1. Prevent default form behavior
+       * 2. Validate input
+       * 3. Show loading state
+       * 4. Send POST request ke API
+       * 5. Parse response
+       * 6. Handle success: save token, redirect
+       * 7. Handle error: show message, enable form
+       */
+      loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        errorMessage.classList.remove('show');
+
+        // ============================================
+        // STEP 1: VALIDATE INPUT
+        // ============================================
+        if (!validateInput()) {
+          return;
+        }
+
+        // ============================================
+        // STEP 2: SET LOADING STATE
+        // ============================================
+        setLoading(true);
+
+        try {
+          // ============================================
+          // STEP 3: PREPARE REQUEST BODY
+          // ============================================
+          const payload = {
+            username: usernameInput.value.trim(),
+            password: passwordInput.value,
+          };
+
+          // ============================================
+          // STEP 4: SEND POST REQUEST
+          // ============================================
+          /**
+           * fetch() API untuk POST ke /api/auth/login
+           *
+           * Headers:
+           * - Content-Type: application/json
+           *
+           * Body: JSON stringify dari payload
+           *
+           * Response: JSON dengan struktur:
+           * {
+           *   "success": true/false,
+           *   "message": "...",
+           *   "data": {
+           *     "token": "jwt_token",
+           *     "user": { user_id, username, role, ... }
+           *   },
+           *   "code": 200/401/500
+           * }
+           */
+          const response = await fetch(LOGIN_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          // ============================================
+          // STEP 5: PARSE RESPONSE
+          // ============================================
+          const result = await response.json();
+
+          // ============================================
+          // STEP 6: HANDLE SUCCESS (200 OK)
+          // ============================================
+          if (response.ok && result.success) {
+            const { token, user } = result.data;
+
+            // Save token & user data
+            saveAuthData(token, user);
+
+            // Redirect ke dashboard sesuai role
+            redirectToDashboard(user.role);
+          } else {
+            // ============================================
+            // STEP 7: HANDLE ERROR
+            // ============================================
+            /**
+             * Error cases:
+             * - 401: Invalid username/password
+             * - 403: Account inactive
+             * - 400: Bad request (validation error)
+             * - 500: Server error
+             */
+            const errorMsg =
+              result.message || 'Login gagal. Silakan coba lagi.';
+            showError(errorMsg);
+            setLoading(false);
+          }
+        } catch (error) {
+          // ============================================
+          // STEP 8: HANDLE NETWORK ERROR
+          // ============================================
+          console.error('Login error:', error);
+          showError(
+            'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.'
+          );
+          setLoading(false);
+        }
+      });
+
+      // ============================================
+      // RESTORE REMEMBERED USERNAME
+      // ============================================
+      /**
+       * Jika sebelumnya user check "Ingat saya",
+       * restore username untuk convenience
+       */
+      window.addEventListener('DOMContentLoaded', () => {
+        const rememberedUsername = localStorage.getItem('remembered_username');
+        if (rememberedUsername) {
+          usernameInput.value = rememberedUsername;
+          rememberMeCheckbox.checked = true;
+          passwordInput.focus();
+        }
+      });
+
+      // ============================================
+      // CLEAR ERROR ON INPUT FOCUS
+      // ============================================
+      /**
+       * Otomatis clear error message saat user
+       * mulai mengetik di input field
+       */
+      usernameInput.addEventListener('focus', () => {
+        errorMessage.classList.remove('show');
+      });
+
+      passwordInput.addEventListener('focus', () => {
+        errorMessage.classList.remove('show');
+      });
+    </script>
+  </body>
+</html>

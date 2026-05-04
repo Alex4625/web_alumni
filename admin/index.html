@@ -1,0 +1,413 @@
+<!-- /admin/index.html -->
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Admin Dashboard - Website Alumni SMA" />
+    <title>Admin Dashboard - Website Alumni SMA</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/style.global.css" />
+    <link rel="stylesheet" href="/css/style.dashboard.css" />
+  </head>
+  <body>
+    <!-- DASHBOARD WRAPPER -->
+    <div class="dashboard-wrapper">
+      <!-- HEADER -->
+      <header class="dashboard-header">
+        <div class="dashboard-header-left">
+          <h1 class="dashboard-header-title">Admin Dashboard</h1>
+        </div>
+
+        <div class="dashboard-header-right">
+          <div class="dashboard-user-info">
+            <div>
+              <p class="dashboard-user-name" id="userName">User</p>
+              <p class="dashboard-user-role" id="userRole">admin</p>
+            </div>
+            <button class="dashboard-logout-btn" id="logoutBtn">Logout</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- SIDEBAR NAVIGATION -->
+      <aside class="dashboard-sidebar">
+        <nav class="dashboard-nav">
+          <!-- DASHBOARD SECTION -->
+          <div class="dashboard-nav-section">Dashboard</div>
+          <li class="dashboard-nav-item">
+            <a href="/admin/index.html" class="dashboard-nav-link active">
+              <span class="dashboard-nav-icon">📊</span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+
+          <!-- MODERATION SECTION -->
+          <div class="dashboard-nav-section">Moderasi</div>
+          <li class="dashboard-nav-item">
+            <a href="/admin/moderation.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">✍️</span>
+              <span>Postingan</span>
+            </a>
+          </li>
+          <li class="dashboard-nav-item">
+            <a href="/admin/gallery-moderation.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">🖼️</span>
+              <span>Galeri</span>
+            </a>
+          </li>
+          <li class="dashboard-nav-item">
+            <a href="/admin/password-requests.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">🔑</span>
+              <span>Password</span>
+            </a>
+          </li>
+
+          <!-- MANAGEMENT SECTION -->
+          <div class="dashboard-nav-section">Manajemen</div>
+          <li class="dashboard-nav-item">
+            <a href="/admin/alumni.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">👥</span>
+              <span>Alumni</span>
+            </a>
+          </li>
+          <li class="dashboard-nav-item">
+            <a href="/admin/users.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">🔐</span>
+              <span>Admin</span>
+            </a>
+          </li>
+
+          <!-- SETTINGS SECTION (Super Admin only) -->
+          <div class="dashboard-nav-section" id="settingsSection" style="display: none">
+            Pengaturan
+          </div>
+          <li class="dashboard-nav-item" id="cmsLink" style="display: none">
+            <a href="/admin/cms.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">📝</span>
+              <span>CMS Homepage</span>
+            </a>
+          </li>
+        </nav>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="dashboard-main">
+        <!-- BREADCRUMB -->
+        <nav class="dashboard-breadcrumb">
+          <a href="/admin/">Dashboard</a>
+        </nav>
+
+        <!-- PAGE HEADER -->
+        <div class="dashboard-page-header">
+          <h2 class="dashboard-page-title">Dashboard Overview</h2>
+        </div>
+
+        <!-- STATISTICS CARDS -->
+        <div class="stats-grid" id="statsContainer">
+          <div class="stat-card pending">
+            <div class="stat-card-content">
+              <h4>Postingan Pending</h4>
+              <p class="stat-card-value" id="pendingPostsCount">0</p>
+            </div>
+            <div class="stat-card-icon">✍️</div>
+          </div>
+
+          <div class="stat-card approved">
+            <div class="stat-card-content">
+              <h4>Total Postingan</h4>
+              <p class="stat-card-value" id="totalPostsCount">0</p>
+            </div>
+            <div class="stat-card-icon">📊</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-content">
+              <h4>Total Alumni</h4>
+              <p class="stat-card-value" id="totalAlumniCount">0</p>
+            </div>
+            <div class="stat-card-icon">👥</div>
+          </div>
+
+          <div class="stat-card rejected">
+            <div class="stat-card-content">
+              <h4>Password Request</h4>
+              <p class="stat-card-value" id="passwordRequestsCount">0</p>
+            </div>
+            <div class="stat-card-icon">🔑</div>
+          </div>
+        </div>
+
+        <!-- RECENT POSTS SECTION -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Postingan Terbaru (Pending)</h3>
+          </div>
+          <div class="card-body">
+            <div id="recentPostsContainer">
+              <p class="text-center" style="color: var(--color-text-secondary)">
+                Loading...
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+      /**
+       * ADMIN DASHBOARD LOGIC
+       *
+       * Alur:
+       * 1. Check authentication (token di localStorage)
+       * 2. Load user data & display
+       * 3. Load statistics (pending posts, total posts, alumni, etc)
+       * 4. Fetch recent pending posts
+       * 5. Setup logout button
+       * 6. Handle role-based visibility (Super Admin only)
+       */
+
+      // ============================================
+      // CONSTANTS
+      // ============================================
+      const TOKEN_KEY = 'auth_token';
+      const USER_KEY = 'auth_user';
+      const API_STATS = '/api/admin/dashboard-stats'; // (future endpoint)
+      const API_POSTS = '/api/posts/list?status=pending&limit=5';
+
+      // ============================================
+      // CHECK AUTHENTICATION
+      // ============================================
+      /**
+       * Jika user belum login atau token expired,
+       * redirect ke login page
+       */
+      function checkAuth() {
+        const token = localStorage.getItem(TOKEN_KEY);
+        const userStr = localStorage.getItem(USER_KEY);
+
+        if (!token || !userStr) {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        try {
+          const user = JSON.parse(userStr);
+
+          // Check role (hanya admin & super_admin)
+          if (user.role !== 'admin' && user.role !== 'super_admin') {
+            alert('Anda tidak memiliki akses ke halaman ini');
+            window.location.href = '/';
+          }
+
+          return user;
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          window.location.href = '/login.html';
+        }
+      }
+
+      // ============================================
+      // HELPER: GET AUTH TOKEN
+      // ============================================
+      function getAuthToken() {
+        return localStorage.getItem(TOKEN_KEY);
+      }
+
+      // ============================================
+      // HELPER: FETCH WITH AUTH
+      // ============================================
+      /**
+       * Wrapper untuk fetch dengan automatic Authorization header
+       *
+       * @param {string} url - API endpoint
+       * @param {object} options - Fetch options
+       * @returns {Promise} - Response promise
+       */
+      async function fetchWithAuth(url, options = {}) {
+        const token = getAuthToken();
+
+        const headers = {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        };
+
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
+        return fetch(url, {
+          ...options,
+          headers,
+        });
+      }
+
+      // ============================================
+      // LOAD & DISPLAY USER INFO
+      // ============================================
+      function loadUserInfo(user) {
+        document.getElementById('userName').textContent = user.full_name || user.username;
+        document.getElementById('userRole').textContent =
+          user.role === 'super_admin' ? 'Super Admin' : 'Admin';
+
+        // Show CMS link untuk Super Admin
+        if (user.role === 'super_admin') {
+          document.getElementById('settingsSection').style.display = 'block';
+          document.getElementById('cmsLink').style.display = 'block';
+        }
+      }
+
+      // ============================================
+      // LOAD STATISTICS
+      // ============================================
+      /**
+       * Load dashboard statistics
+       * (pending posts, total posts, total alumni, password requests)
+       *
+       * Note: Untuk sekarang, kita query dari list endpoints
+       * Ideal: Create dedicated /api/admin/dashboard-stats endpoint
+       */
+      async function loadStatistics() {
+        try {
+          // ============================================
+          // FETCH POSTS (filter pending, approved, etc)
+          // ============================================
+          const postsResponse = await fetchWithAuth('/api/posts/list');
+          const postsData = await postsResponse.json();
+
+          if (postsData.success) {
+            const posts = postsData.data.posts;
+
+            const pendingCount = posts.filter((p) => p.status === 'pending').length;
+            const totalCount = posts.length;
+
+            document.getElementById('pendingPostsCount').textContent = pendingCount;
+            document.getElementById('totalPostsCount').textContent = totalCount;
+          }
+
+          // ============================================
+          // FETCH ALUMNI
+          // ============================================
+          const alumniResponse = await fetchWithAuth('/api/public/alumni-directory?limit=1000');
+          const alumniData = await alumniResponse.json();
+
+          if (alumniData.success) {
+            const totalAlumni = alumniData.data.pagination.total_records;
+            document.getElementById('totalAlumniCount').textContent = totalAlumni;
+          }
+
+          // ============================================
+          // FETCH PASSWORD REQUESTS (future endpoint)
+          // ============================================
+          // const passwordResponse = await fetchWithAuth('/api/admin/password-requests');
+          // if (passwordResponse.ok) {
+          //   const pwData = await passwordResponse.json();
+          //   const pendingRequests = pwData.data.filter(r => r.status === 'pending').length;
+          //   document.getElementById('passwordRequestsCount').textContent = pendingRequests;
+          // }
+
+          // For now, set dummy count
+          document.getElementById('passwordRequestsCount').textContent = '0';
+        } catch (error) {
+          console.error('Error loading statistics:', error);
+        }
+      }
+
+      // ============================================
+      // LOAD RECENT PENDING POSTS
+      // ============================================
+      async function loadRecentPosts() {
+        const container = document.getElementById('recentPostsContainer');
+
+        try {
+          const response = await fetchWithAuth('/api/posts/list?status=pending&limit=5');
+          const data = await response.json();
+
+          if (!data.success || data.data.posts.length === 0) {
+            container.innerHTML = `
+              <div class="table-empty">
+                <p>Tidak ada postingan pending</p>
+              </div>
+            `;
+            return;
+          }
+
+          const posts = data.data.posts;
+
+          const html = `
+            <table>
+              <thead>
+                <tr>
+                  <th>Judul</th>
+                  <th>Penulis</th>
+                  <th>Tanggal</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${posts
+                  .map(
+                    (post) => `
+                  <tr>
+                    <td>
+                      <strong>${post.title}</strong><br>
+                      <small style="color: var(--color-text-secondary);">${post.content.substring(0, 50)}...</small>
+                    </td>
+                    <td>${post.full_name}</td>
+                    <td>${new Date(post.created_at).toLocaleDateString('id-ID')}</td>
+                    <td>
+                      <a href="/admin/moderation.html?post_id=${post.post_id}" class="action-btn">
+                        Lihat
+                      </a>
+                    </td>
+                  </tr>
+                `
+                  )
+                  .join('')}
+              </tbody>
+            </table>
+          `;
+
+          container.innerHTML = html;
+        } catch (error) {
+          console.error('Error loading posts:', error);
+          container.innerHTML = `
+            <div class="alert alert-error">
+              <p>Gagal memuat data postingan</p>
+            </div>
+          `;
+        }
+      }
+
+      // ============================================
+      // LOGOUT HANDLER
+      // ============================================
+      function setupLogout() {
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        logoutBtn.addEventListener('click', () => {
+          if (confirm('Apakah Anda yakin ingin logout?')) {
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            window.location.href = '/login.html';
+          }
+        });
+      }
+
+      // ============================================
+      // INIT
+      // ============================================
+      window.addEventListener('DOMContentLoaded', () => {
+        const user = checkAuth();
+        loadUserInfo(user);
+        loadStatistics();
+        loadRecentPosts();
+        setupLogout();
+      });
+    </script>
+  </body>
+</html>

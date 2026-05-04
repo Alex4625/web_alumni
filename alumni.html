@@ -1,0 +1,827 @@
+<!-- /alumni.html -->
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Direktori Alumni SMA" />
+    <title>Direktori Alumni - Website Alumni SMA</title>
+
+    <!-- CSS GLOBAL & CUSTOM -->
+    <link rel="stylesheet" href="/css/style.global.css" />
+    <link rel="stylesheet" href="/css/style.alumni-directory.css" />
+  </head>
+  <body>
+    <!-- HEADER/NAVBAR (PLACEHOLDER) -->
+    <header class="navbar">
+      <div class="navbar-container">
+        <div class="navbar-brand">
+          <h2>Alumni SMA</h2>
+        </div>
+        <nav class="navbar-menu">
+          <a href="/" class="navbar-link">Home</a>
+          <a href="/alumni.html" class="navbar-link active">Alumni</a>
+          <a href="/posts.html" class="navbar-link">Postingan</a>
+          <a href="/login.html" class="navbar-link navbar-link-primary">Login</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="alumni-directory-page">
+      <div class="container">
+        <!-- PAGE HEADER -->
+        <section class="alumni-header">
+          <h1>Direktori Alumni</h1>
+          <p>Temukan dan terhubung dengan alumni lainnya</p>
+        </section>
+
+        <!-- FILTER & SEARCH SECTION -->
+        <section class="alumni-filters">
+          <div class="filter-row">
+            <!-- SEARCH BOX -->
+            <div class="filter-group">
+              <input
+                type="text"
+                id="searchInput"
+                class="filter-input"
+                placeholder="Cari nama atau username..."
+                aria-label="Cari alumni"
+              />
+            </div>
+
+            <!-- KELAS FILTER -->
+            <div class="filter-group">
+              <select id="kelasFilter" class="filter-select" aria-label="Filter kelas">
+                <option value="">Semua Kelas</option>
+                <option value="IPA">Kelas IPA</option>
+                <option value="IPS_A">Kelas IPS A</option>
+                <option value="IPS_B">Kelas IPS B</option>
+              </select>
+            </div>
+
+            <!-- RESET BUTTON -->
+            <button class="btn btn-secondary" id="resetFiltersBtn">
+              Reset Filter
+            </button>
+          </div>
+        </section>
+
+        <!-- LOADING STATE -->
+        <div class="alumni-loading" id="loadingState" style="display: none">
+          <p>Sedang memuat data alumni...</p>
+        </div>
+
+        <!-- ERROR STATE -->
+        <div class="alert alert-error" id="errorState" style="display: none">
+          <p id="errorMessage"></p>
+        </div>
+
+        <!-- ALUMNI GRID -->
+        <section class="alumni-grid" id="alumniContainer">
+          <!-- Alumni cards akan di-render di sini oleh JavaScript -->
+        </section>
+
+        <!-- PAGINATION -->
+        <section class="alumni-pagination">
+          <div class="pagination-info" id="paginationInfo">
+            Menampilkan alumni
+          </div>
+
+          <div class="pagination-controls" id="paginationControls">
+            <!-- Pagination buttons akan di-render oleh JavaScript -->
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- FOOTER (PLACEHOLDER) -->
+    <footer class="footer">
+      <div class="container">
+        <p>&copy; 2024 Website Alumni SMA. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <!-- CSS UNTUK ALUMNI DIRECTORY -->
+    <style>
+      /* /css/style.alumni-directory.css */
+      /**
+       * DIREKTORI ALUMNI STYLES
+       *
+       * Sections:
+       * 1. Navbar
+       * 2. Page Header
+       * 3. Filters
+       * 4. Alumni Grid & Cards
+       * 5. Pagination
+       * 6. Footer
+       */
+
+      /* ============================================
+         1. NAVBAR
+         ============================================ */
+
+      .navbar {
+        background-color: var(--color-primary-navy);
+        color: var(--color-text-on-primary);
+        padding: var(--spacing-md) 0;
+        box-shadow: var(--shadow-sm);
+        position: sticky;
+        top: 0;
+        z-index: var(--z-sticky);
+      }
+
+      .navbar-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 var(--spacing-md);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .navbar-brand h2 {
+        color: var(--color-text-on-primary);
+        margin: 0;
+      }
+
+      .navbar-menu {
+        display: flex;
+        gap: var(--spacing-lg);
+        align-items: center;
+      }
+
+      .navbar-link {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        transition: color var(--transition-base);
+        font-weight: 500;
+      }
+
+      .navbar-link:hover,
+      .navbar-link.active {
+        color: var(--color-text-on-primary);
+      }
+
+      .navbar-link-primary {
+        background-color: rgba(37, 99, 235, 0.8);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--radius-md);
+      }
+
+      .navbar-link-primary:hover {
+        background-color: #2563eb;
+      }
+
+      /* ============================================
+         2. PAGE HEADER
+         ============================================ */
+
+      .alumni-header {
+        text-align: center;
+        padding: var(--spacing-3xl) 0 var(--spacing-2xl);
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--spacing-2xl);
+      }
+
+      .alumni-header h1 {
+        color: var(--color-primary-navy);
+        margin-bottom: var(--spacing-md);
+      }
+
+      .alumni-header p {
+        color: var(--color-text-secondary);
+        font-size: 1.1rem;
+        margin: 0;
+      }
+
+      /* ============================================
+         3. FILTERS
+         ============================================ */
+
+      .alumni-filters {
+        background-color: var(--color-white);
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--spacing-2xl);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .filter-row {
+        display: flex;
+        gap: var(--spacing-md);
+        flex-wrap: wrap;
+        align-items: flex-end;
+      }
+
+      .filter-group {
+        flex: 1;
+        min-width: 200px;
+      }
+
+      .filter-input,
+      .filter-select {
+        width: 100%;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        transition: all var(--transition-base);
+      }
+
+      .filter-input:focus,
+      .filter-select:focus {
+        outline: none;
+        border-color: var(--color-accent-blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .filter-select {
+        appearance: none;
+        background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%236b7280"%3E%3Cpath fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/%3E%3C/svg%3E');
+        background-repeat: no-repeat;
+        background-position: right var(--spacing-md) center;
+        background-size: 20px;
+        padding-right: 2.5rem;
+      }
+
+      @media (max-width: 768px) {
+        .filter-row {
+          flex-direction: column;
+        }
+
+        .filter-group {
+          width: 100%;
+        }
+      }
+
+      /* ============================================
+         4. ALUMNI GRID & CARDS
+         ============================================ */
+
+      .alumni-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-2xl);
+      }
+
+      .alumni-card {
+        background-color: var(--color-white);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-base);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .alumni-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-4px);
+      }
+
+      .alumni-card-header {
+        background: linear-gradient(135deg, var(--color-primary-navy) 0%, var(--color-primary-dark) 100%);
+        color: var(--color-text-on-primary);
+        padding: var(--spacing-lg);
+        text-align: center;
+      }
+
+      .alumni-card-photo {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto var(--spacing-md);
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        overflow: hidden;
+      }
+
+      .alumni-card-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .alumni-card-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: var(--spacing-xs);
+      }
+
+      .alumni-card-username {
+        font-size: 0.85rem;
+        opacity: 0.8;
+      }
+
+      .alumni-card-body {
+        padding: var(--spacing-lg);
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .alumni-card-badge {
+        display: inline-block;
+        margin-bottom: var(--spacing-md);
+      }
+
+      .alumni-card-info {
+        margin-bottom: var(--spacing-md);
+        font-size: 0.9rem;
+      }
+
+      .alumni-card-info-label {
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        display: block;
+        margin-bottom: var(--spacing-xs);
+      }
+
+      .alumni-card-info-value {
+        color: var(--color-text-primary);
+      }
+
+      .alumni-card-social {
+        display: flex;
+        gap: var(--spacing-md);
+        margin-top: auto;
+      }
+
+      .alumni-card-social a {
+        font-size: 0.85rem;
+        color: var(--color-accent-blue);
+        text-decoration: none;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--radius-md);
+        transition: all var(--transition-base);
+        flex: 1;
+        text-align: center;
+      }
+
+      .alumni-card-social a:hover {
+        background-color: var(--color-accent-blue);
+        color: var(--color-text-on-primary);
+        border-color: var(--color-accent-blue);
+      }
+
+      .alumni-loading {
+        text-align: center;
+        padding: var(--spacing-2xl);
+        color: var(--color-text-secondary);
+      }
+
+      /* ============================================
+         5. PAGINATION
+         ============================================ */
+
+      .alumni-pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-lg);
+        background-color: var(--color-white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: var(--spacing-2xl);
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+      }
+
+      .pagination-info {
+        font-size: 0.9rem;
+        color: var(--color-text-secondary);
+      }
+
+      .pagination-controls {
+        display: flex;
+        gap: var(--spacing-sm);
+      }
+
+      .pagination-btn {
+        padding: var(--spacing-xs) var(--spacing-md);
+        border: 1px solid var(--color-gray-300);
+        background-color: var(--color-white);
+        color: var(--color-text-primary);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--transition-base);
+        font-weight: 500;
+        font-size: 0.9rem;
+      }
+
+      .pagination-btn:hover:not(:disabled) {
+        background-color: var(--color-gray-50);
+        border-color: var(--color-accent-blue);
+        color: var(--color-accent-blue);
+      }
+
+      .pagination-btn.active {
+        background-color: var(--color-primary-navy);
+        color: var(--color-text-on-primary);
+        border-color: var(--color-primary-navy);
+      }
+
+      .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* ============================================
+         6. FOOTER
+         ============================================ */
+
+      .footer {
+        background-color: var(--color-primary-navy);
+        color: var(--color-text-on-primary);
+        padding: var(--spacing-2xl) 0;
+        text-align: center;
+        margin-top: var(--spacing-3xl);
+      }
+
+      .footer p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      /* ============================================
+         RESPONSIVE
+         ============================================ */
+
+      @media (max-width: 768px) {
+        .alumni-header {
+          padding: var(--spacing-2xl) 0 var(--spacing-lg);
+        }
+
+        .alumni-header h1 {
+          font-size: 1.75rem;
+        }
+
+        .alumni-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .alumni-pagination {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+
+    <!-- JAVASCRIPT - ALUMNI DIRECTORY LOGIC -->
+    <script>
+      /**
+       * ALUMNI DIRECTORY PAGE LOGIC
+       *
+       * Alur:
+       * 1. Setup event listeners (search, filter, pagination)
+       * 2. Fetch alumni data dari API dengan parameters
+       * 3. Render alumni cards ke grid
+       * 4. Render pagination buttons
+       * 5. Handle filter & search changes → refetch dengan params baru
+       */
+
+      // ============================================
+      // CONSTANTS
+      // ============================================
+      const API_ALUMNI = '/api/public/alumni-directory';
+      const DEFAULT_LIMIT = 6; // Items per page
+
+      // ============================================
+      // STATE
+      // ============================================
+      let currentPage = 1;
+      let currentSearch = '';
+      let currentKelas = '';
+      let totalPages = 1;
+      let isLoading = false;
+
+      // ============================================
+      // DOM ELEMENTS
+      // ============================================
+      const searchInput = document.getElementById('searchInput');
+      const kelasFilter = document.getElementById('kelasFilter');
+      const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+      const alumniContainer = document.getElementById('alumniContainer');
+      const loadingState = document.getElementById('loadingState');
+      const errorState = document.getElementById('errorState');
+      const errorMessage = document.getElementById('errorMessage');
+      const paginationInfo = document.getElementById('paginationInfo');
+      const paginationControls = document.getElementById('paginationControls');
+
+      // ============================================
+      // HELPER: BUILD API URL WITH QUERY PARAMS
+      // ============================================
+      /**
+       * Build API URL dengan query parameters
+       *
+       * Parameters:
+       * - page: Current page
+       * - limit: Items per page
+       * - search: Search query
+       * - kelas: Class filter
+       *
+       * @returns {string} - Full API URL
+       */
+      function buildApiUrl() {
+        const params = new URLSearchParams({
+          page: currentPage,
+          limit: DEFAULT_LIMIT,
+        });
+
+        if (currentSearch.trim()) {
+          params.append('search', currentSearch.trim());
+        }
+
+        if (currentKelas) {
+          params.append('kelas', currentKelas);
+        }
+
+        return `${API_ALUMNI}?${params.toString()}`;
+      }
+
+      // ============================================
+      // HELPER: FETCH ALUMNI DATA
+      // ============================================
+      /**
+       * Fetch alumni data dari API
+       *
+       * Alur:
+       * 1. Show loading state
+       * 2. Build URL dengan query params
+       * 3. Fetch data
+       * 4. Parse response
+       * 5. Render alumni cards & pagination
+       * 6. Handle error
+       */
+      async function fetchAlumni() {
+        if (isLoading) return; // Prevent duplicate requests
+
+        isLoading = true;
+        loadingState.style.display = 'block';
+        errorState.style.display = 'none';
+        alumniContainer.innerHTML = '';
+
+        try {
+          const url = buildApiUrl();
+          console.log('Fetching:', url);
+
+          // ============================================
+          // FETCH API
+          // ============================================
+          const response = await fetch(url);
+          const result = await response.json();
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.message || 'Gagal memuat data alumni');
+          }
+
+          const { pagination, alumni } = result.data;
+
+          // ============================================
+          // UPDATE STATE
+          // ============================================
+          totalPages = pagination.total_pages;
+
+          // ============================================
+          // RENDER ALUMNI CARDS
+          // ============================================
+          if (alumni.length === 0) {
+            alumniContainer.innerHTML =
+              '<p style="grid-column: 1/-1; text-align: center; color: var(--color-text-secondary);">Tidak ada alumni ditemukan</p>';
+          } else {
+            renderAlumniCards(alumni);
+          }
+
+          // ============================================
+          // RENDER PAGINATION INFO
+          // ============================================
+          const startItem = (currentPage - 1) * DEFAULT_LIMIT + 1;
+          const endItem = Math.min(currentPage * DEFAULT_LIMIT, pagination.total_records);
+          paginationInfo.textContent = `Menampilkan ${startItem}-${endItem} dari ${pagination.total_records} alumni`;
+
+          // ============================================
+          // RENDER PAGINATION BUTTONS
+          // ============================================
+          renderPaginationButtons(pagination);
+        } catch (error) {
+          console.error('Error fetching alumni:', error);
+          errorMessage.textContent = error.message || 'Gagal memuat data alumni';
+          errorState.style.display = 'block';
+          alumniContainer.innerHTML = '';
+        } finally {
+          isLoading = false;
+          loadingState.style.display = 'none';
+        }
+      }
+
+      // ============================================
+      // HELPER: RENDER ALUMNI CARDS
+      // ============================================
+      /**
+       * Render alumni card components
+       *
+       * Setiap card menampilkan:
+       * - Photo (atau avatar placeholder)
+       * - Name & username
+       * - Class & graduation year
+       * - City, occupation, company
+       * - Social links (LinkedIn, Instagram)
+       *
+       * @param {array} alumni - Array of alumni data
+       */
+      function renderAlumniCards(alumni) {
+        alumniContainer.innerHTML = alumni
+          .map(
+            (person) => `
+          <div class="alumni-card">
+            <!-- CARD HEADER (PHOTO & NAME) -->
+            <div class="alumni-card-header">
+              <div class="alumni-card-photo">
+                ${
+                  person.profile_photo_url
+                    ? `<img src="${person.profile_photo_url}" alt="${person.full_name}">`
+                    : '👤'
+                }
+              </div>
+              <div class="alumni-card-name">${person.full_name}</div>
+              <div class="alumni-card-username">@${person.username}</div>
+            </div>
+
+            <!-- CARD BODY (INFO) -->
+            <div class="alumni-card-body">
+              <!-- BADGE: CLASS & YEAR -->
+              <div class="alumni-card-badge">
+                <span class="badge badge-approved">${person.kelas} • ${person.tahun_lulus}</span>
+              </div>
+
+              <!-- CITY -->
+              ${
+                person.city
+                  ? `
+                <div class="alumni-card-info">
+                  <span class="alumni-card-info-label">📍 Kota</span>
+                  <span class="alumni-card-info-value">${person.city}</span>
+                </div>
+              `
+                  : ''
+              }
+
+              <!-- OCCUPATION -->
+              ${
+                person.occupation
+                  ? `
+                <div class="alumni-card-info">
+                  <span class="alumni-card-info-label">💼 Profesi</span>
+                  <span class="alumni-card-info-value">${person.occupation}</span>
+                  ${
+                    person.company
+                      ? `<span class="alumni-card-info-value" style="display: block; font-size: 0.85rem; color: var(--color-text-secondary);">${person.company}</span>`
+                      : ''
+                  }
+                </div>
+              `
+                  : ''
+              }
+
+              <!-- SOCIAL LINKS -->
+              <div class="alumni-card-social">
+                ${
+                  person.linkedin_url
+                    ? `<a href="${person.linkedin_url}" target="_blank" rel="noopener noreferrer">LinkedIn</a>`
+                    : ''
+                }
+                ${
+                  person.instagram_handle
+                    ? `<a href="https://instagram.com/${person.instagram_handle}" target="_blank" rel="noopener noreferrer">Instagram</a>`
+                    : ''
+                }
+              </div>
+            </div>
+          </div>
+        `
+          )
+          .join('');
+      }
+
+      // ============================================
+      // HELPER: RENDER PAGINATION BUTTONS
+      // ============================================
+      /**
+       * Render pagination controls
+       *
+       * Buttons:
+       * - Previous (disabled if page 1)
+       * - Page numbers (1, 2, 3, ...)
+       * - Next (disabled if last page)
+       *
+       * @param {object} pagination - Pagination metadata
+       */
+      function renderPaginationButtons(pagination) {
+        paginationControls.innerHTML = '';
+
+        // ============================================
+        // PREV BUTTON
+        // ============================================
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'pagination-btn';
+        prevBtn.textContent = '← Sebelumnya';
+        prevBtn.disabled = !pagination.has_prev;
+        prevBtn.addEventListener('click', () => {
+          if (currentPage > 1) {
+            currentPage--;
+            fetchAlumni();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+        paginationControls.appendChild(prevBtn);
+
+        // ============================================
+        // PAGE NUMBER BUTTONS
+        // ============================================
+        for (let i = 1; i <= pagination.total_pages; i++) {
+          const pageBtn = document.createElement('button');
+          pageBtn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
+          pageBtn.textContent = i.toString();
+          pageBtn.disabled = i === currentPage;
+          pageBtn.addEventListener('click', () => {
+            currentPage = i;
+            fetchAlumni();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+          paginationControls.appendChild(pageBtn);
+        }
+
+        // ============================================
+        // NEXT BUTTON
+        // ============================================
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'pagination-btn';
+        nextBtn.textContent = 'Selanjutnya →';
+        nextBtn.disabled = !pagination.has_next;
+        nextBtn.addEventListener('click', () => {
+          if (currentPage < pagination.total_pages) {
+            currentPage++;
+            fetchAlumni();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+        paginationControls.appendChild(nextBtn);
+      }
+
+      // ============================================
+      // EVENT LISTENER: SEARCH INPUT
+      // ============================================
+      /**
+       * Debounce search input untuk prevent API spam
+       *
+       * Jika user mengetik, tunggu 500ms sebelum fetch
+       * Jika user terus mengetik, reset timer
+       */
+      let searchTimeout;
+      searchInput.addEventListener('input', (e) => {
+        currentSearch = e.target.value;
+        currentPage = 1; // Reset ke page 1
+
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          fetchAlumni();
+        }, 500);
+      });
+
+      // ============================================
+      // EVENT LISTENER: KELAS FILTER
+      // ============================================
+      kelasFilter.addEventListener('change', (e) => {
+        currentKelas = e.target.value;
+        currentPage = 1; // Reset ke page 1
+        fetchAlumni();
+      });
+
+      // ============================================
+      // EVENT LISTENER: RESET FILTERS
+      // ============================================
+      resetFiltersBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        kelasFilter.value = '';
+        currentSearch = '';
+        currentKelas = '';
+        currentPage = 1;
+        fetchAlumni();
+      });
+
+      // ============================================
+      // INIT: LOAD ALUMNI ON PAGE LOAD
+      // ============================================
+      window.addEventListener('DOMContentLoaded', () => {
+        fetchAlumni();
+      });
+    </script>
+  </body>
+</html>

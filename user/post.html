@@ -1,0 +1,737 @@
+<!-- /user/post.html -->
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Buat Postingan - Alumni Dashboard" />
+    <title>Buat Postingan - Alumni Dashboard</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/style.global.css" />
+    <link rel="stylesheet" href="/css/style.dashboard.css" />
+
+    <!-- CLOUDINARY UPLOAD WIDGET -->
+    <!-- 
+      Cloudinary Upload Widget adalah widget JavaScript yang memudahkan upload file
+      langsung ke Cloudinary tanpa melalui server backend.
+      
+      Keuntungan:
+      - Upload langsung dari client ke Cloudinary CDN
+      - Tidak membebani server backend
+      - Response langsung berisi secure_url dari gambar
+      - Support drag-drop, camera capture, dll
+    -->
+    <script src="https://upload-widget.cloudinary.com/latest/cw-all.js"></script>
+
+    <style>
+      /* CUSTOM STYLES UNTUK CLOUDINARY WIDGET */
+      .cloudinary-button-wrapper {
+        margin: var(--spacing-lg) 0;
+      }
+
+      .uploaded-images-preview {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: var(--spacing-lg);
+        margin: var(--spacing-lg) 0;
+      }
+
+      .image-preview-card {
+        position: relative;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        background-color: var(--color-gray-100);
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .image-preview-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .image-preview-remove {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background-color: rgba(239, 68, 68, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--transition-base);
+      }
+
+      .image-preview-remove:hover {
+        background-color: #dc2626;
+        transform: scale(1.1);
+      }
+
+      .upload-zone {
+        border: 2px dashed var(--color-gray-300);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-2xl);
+        text-align: center;
+        background-color: var(--color-gray-50);
+        transition: all var(--transition-base);
+      }
+
+      .upload-zone:hover {
+        border-color: var(--color-accent-blue);
+        background-color: #eff6ff;
+      }
+
+      .upload-zone.active {
+        border-color: var(--color-accent-blue);
+        background-color: #eff6ff;
+      }
+
+      .upload-icon {
+        font-size: 3rem;
+        margin-bottom: var(--spacing-md);
+      }
+
+      .upload-text {
+        color: var(--color-text-secondary);
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- DASHBOARD WRAPPER -->
+    <div class="dashboard-wrapper">
+      <!-- HEADER -->
+      <header class="dashboard-header">
+        <div class="dashboard-header-left">
+          <h1 class="dashboard-header-title">Alumni Dashboard</h1>
+        </div>
+
+        <div class="dashboard-header-right">
+          <div class="dashboard-user-info">
+            <div>
+              <p class="dashboard-user-name" id="userName">User</p>
+              <p class="dashboard-user-role">Alumni</p>
+            </div>
+            <button class="dashboard-logout-btn" id="logoutBtn">Logout</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- SIDEBAR NAVIGATION -->
+      <aside class="dashboard-sidebar">
+        <nav class="dashboard-nav">
+          <div class="dashboard-nav-section">Menu Utama</div>
+          <li class="dashboard-nav-item">
+            <a href="/user/index.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">👤</span>
+              <span>Profil</span>
+            </a>
+          </li>
+          <li class="dashboard-nav-item">
+            <a href="/user/posts.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">✍️</span>
+              <span>Postingan</span>
+            </a>
+          </li>
+          <li class="dashboard-nav-item">
+            <a href="/user/gallery.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">🖼️</span>
+              <span>Galeri</span>
+            </a>
+          </li>
+
+          <div class="dashboard-nav-section">Akun</div>
+          <li class="dashboard-nav-item">
+            <a href="/user/password.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">🔐</span>
+              <span>Ganti Password</span>
+            </a>
+          </li>
+        </nav>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="dashboard-main">
+        <!-- BREADCRUMB -->
+        <nav class="dashboard-breadcrumb">
+          <a href="/user/">Dashboard</a> / <span>Buat Postingan</span>
+        </nav>
+
+        <!-- PAGE HEADER -->
+        <div class="dashboard-page-header">
+          <h2 class="dashboard-page-title">Buat Postingan Baru</h2>
+        </div>
+
+        <!-- ERROR STATE -->
+        <div id="errorState" class="alert alert-error" style="display: none">
+          <p id="errorMessage"></p>
+        </div>
+
+        <!-- SUCCESS STATE -->
+        <div id="successState" class="alert alert-success" style="display: none">
+          <p id="successMessage"></p>
+        </div>
+
+        <!-- CREATE POST FORM -->
+        <form id="postForm" class="card">
+          <div class="card-header">
+            <h3>Detail Postingan</h3>
+          </div>
+
+          <div class="card-body">
+            <!-- TITLE FIELD -->
+            <div class="form-group">
+              <label for="postTitle" class="required">Judul Postingan</label>
+              <input
+                type="text"
+                id="postTitle"
+                name="postTitle"
+                placeholder="Contoh: Tips Memulai Karir di Tech"
+                maxlength="200"
+                required
+              />
+              <small style="color: var(--color-text-light)" id="titleCounter">0 / 200 karakter</small>
+            </div>
+
+            <!-- CONTENT FIELD -->
+            <div class="form-group">
+              <label for="postContent" class="required">Konten</label>
+              <textarea
+                id="postContent"
+                name="postContent"
+                placeholder="Tulis cerita, pengalaman, atau informasi bermanfaat..."
+                rows="6"
+                maxlength="5000"
+                required
+              ></textarea>
+              <small style="color: var(--color-text-light)" id="contentCounter">0 / 5000 karakter</small>
+            </div>
+
+            <!-- IMAGE UPLOAD SECTION -->
+            <div class="form-group">
+              <label for="postImages">Tambahkan Gambar (Opsional)</label>
+              <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: var(--spacing-md)">
+                Anda dapat menambahkan hingga 5 gambar untuk memperkaya postingan Anda.
+              </p>
+
+              <!-- CLOUDINARY UPLOAD WIDGET BUTTON -->
+              <div class="upload-zone">
+                <div class="upload-icon">☁️</div>
+                <button
+                  type="button"
+                  id="uploadWidget"
+                  class="btn btn-primary"
+                  style="margin-bottom: var(--spacing-md)"
+                >
+                  Pilih Gambar dari Komputer
+                </button>
+                <p class="upload-text">atau drag & drop gambar ke sini</p>
+              </div>
+
+              <!-- UPLOADED IMAGES PREVIEW -->
+              <div id="uploadedImagesContainer" style="display: none">
+                <h4 style="margin-top: var(--spacing-lg); margin-bottom: var(--spacing-md)">
+                  Gambar yang dipilih (<span id="imageCount">0</span>/5):
+                </h4>
+                <div id="uploadedImagesPreview" class="uploaded-images-preview"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+              Publikasikan Postingan
+            </button>
+            <button type="reset" class="btn btn-secondary" onclick="resetPostForm()">
+              Batalkan
+            </button>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <!-- JAVASCRIPT - CLOUDINARY WIDGET & POST CREATION -->
+    <script>
+      /**
+       * ALUMNI POST CREATION WITH CLOUDINARY WIDGET
+       *
+       * Alur Lengkap:
+       * 1. Check authentication
+       * 2. Setup Cloudinary Upload Widget
+       * 3. User click upload button → Cloudinary widget open
+       * 4. User select gambar → Upload ke Cloudinary
+       * 5. Cloudinary return secure_url → Store di array
+       * 6. Display preview dari uploaded images
+       * 7. User submit form → Send ke /api/posts/create dengan image URLs
+       * 8. API response → Postingan created (pending admin approval)
+       *
+       * PENTING:
+       * - Cloudinary widget handle upload langsung ke Cloudinary
+       * - Kita HANYA store URL-nya, bukan file binary
+       * - Server API hanya menerima URLs, tidak process uploads
+       */
+
+      // ============================================
+      // CONSTANTS
+      // ============================================
+      const TOKEN_KEY = 'auth_token';
+      const USER_KEY = 'auth_user';
+      const API_POST_CREATE = '/api/posts/create';
+
+      // ============================================
+      // CLOUDINARY CONFIG
+      // ============================================
+      /**
+       * CLOUDINARY CREDENTIALS
+       * 
+       * Dapatkan dari:
+       * 1. Sign up di https://cloudinary.com
+       * 2. Dashboard → Account Details
+       * 3. Copy: Cloud Name, Upload Preset, API Key
+       * 
+       * UPLOAD PRESET:
+       * - Create di: Settings → Upload → Upload Presets
+       * - Set mode: Unsigned (untuk client-side upload)
+       * - Resource type: Image
+       */
+      const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME'; // Replace dengan cloud name Anda
+      const CLOUDINARY_UPLOAD_PRESET = 'YOUR_UPLOAD_PRESET'; // Replace dengan preset Anda
+
+      // ============================================
+      // STATE
+      // ============================================
+      let uploadedImages = []; // Array untuk store uploaded image URLs
+      let isSubmitting = false;
+
+      // ============================================
+      // DOM ELEMENTS
+      // ============================================
+      const postForm = document.getElementById('postForm');
+      const uploadWidgetBtn = document.getElementById('uploadWidget');
+      const uploadedImagesContainer = document.getElementById('uploadedImagesContainer');
+      const uploadedImagesPreview = document.getElementById('uploadedImagesPreview');
+      const imageCount = document.getElementById('imageCount');
+      const postTitleInput = document.getElementById('postTitle');
+      const postContentInput = document.getElementById('postContent');
+      const submitBtn = document.getElementById('submitBtn');
+      const errorState = document.getElementById('errorState');
+      const errorMessage = document.getElementById('errorMessage');
+      const successState = document.getElementById('successState');
+      const successMessage = document.getElementById('successMessage');
+      const titleCounter = document.getElementById('titleCounter');
+      const contentCounter = document.getElementById('contentCounter');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const userName = document.getElementById('userName');
+
+      // ============================================
+      // CHECK AUTHENTICATION
+      // ============================================
+      function checkAuth() {
+        const token = localStorage.getItem(TOKEN_KEY);
+        const userStr = localStorage.getItem(USER_KEY);
+
+        if (!token || !userStr) {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        try {
+          const user = JSON.parse(userStr);
+
+          if (!user || user.role !== 'alumni') {
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            alert('Halaman ini hanya untuk alumni');
+            window.location.href = '/';
+            return;
+          }
+
+          userName.textContent = user.full_name || user.username;
+          return user;
+        } catch (error) {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          window.location.href = '/login.html';
+        }
+      }
+
+      // ============================================
+      // HELPER: FETCH WITH AUTH
+      // ============================================
+      async function fetchWithAuth(url, options = {}) {
+        try {
+          const token = localStorage.getItem(TOKEN_KEY);
+
+          const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers,
+          };
+
+          if (token) {
+            headers.Authorization = `Bearer ${token}`;
+          }
+
+          const response = await fetch(url, {
+            ...options,
+            headers,
+          });
+
+          if (!response.ok && response.status === 401) {
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            window.location.href = '/login.html';
+          }
+
+          return response;
+        } catch (error) {
+          throw new Error('Koneksi jaringan gagal. Silakan coba lagi.');
+        }
+      }
+
+      // ============================================
+      // HELPER: SHOW ERROR
+      // ============================================
+      function showError(message) {
+        errorMessage.textContent = message;
+        errorState.style.display = 'block';
+        successState.style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // ============================================
+      // HELPER: SHOW SUCCESS
+      // ============================================
+      function showSuccess(message) {
+        successMessage.textContent = message;
+        successState.style.display = 'block';
+        errorState.style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // ============================================
+      // SETUP CLOUDINARY UPLOAD WIDGET
+      // ============================================
+      /**
+       * CLOUDINARY WIDGET CONFIGURATION
+       *
+       * API Reference: https://cloudinary.com/documentation/upload_widget
+       *
+       * Widget Options:
+       * - cloudName: Cloudinary account cloud name
+       * - uploadPreset: Unsigned upload preset (untuk client-side)
+       * - multiple: Allow multiple images
+       * - maxFiles: Max files dalam satu session
+       * - resourceType: Tipe file (image, video, auto, dll)
+       * - maxFileSize: Max file size (bytes)
+       * - clientAllowedFormats: Format file yang allowed
+       *
+       * Event Handlers:
+       * - onSuccess: Called ketika upload berhasil
+       * - onError: Called ketika ada error
+       * - onClose: Called ketika widget ditutup
+       */
+      function setupCloudinaryWidget() {
+        // Validate Cloudinary credentials
+        if (CLOUDINARY_CLOUD_NAME === 'YOUR_CLOUD_NAME' || CLOUDINARY_UPLOAD_PRESET === 'YOUR_UPLOAD_PRESET') {
+          showError('⚠️ Cloudinary belum dikonfigurasi. Hubungi administrator.');
+          uploadWidgetBtn.disabled = true;
+          return;
+        }
+
+        uploadWidgetBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+
+          // ============================================
+          // OPEN CLOUDINARY UPLOAD WIDGET
+          // ============================================
+          cloudinary.openUploadWidget(
+            {
+              cloudName: CLOUDINARY_CLOUD_NAME,
+              uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+              multiple: true, // Allow select multiple images
+              maxFiles: 5, // Max 5 files per post
+              resourceType: 'image',
+              maxFileSize: 5242880, // 5MB max per file
+              clientAllowedFormats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+              folder: 'alumni-posts', // Folder di Cloudinary
+              showAdvancedOptions: false,
+              showPoweredBy: false,
+              croppingAspectRatio: 16 / 9, // Optional: crop ratio
+              showCompletedButton: true,
+            },
+            (error, result) => {
+              // ============================================
+              // HANDLE UPLOAD RESULT
+              // ============================================
+
+              if (error) {
+                // User cancel atau error terjadi
+                showError('Gagal upload gambar. Silakan coba lagi.');
+                return;
+              }
+
+              if (result && result.event === 'success') {
+                // ============================================
+                // UPLOAD BERHASIL
+                // ============================================
+                /**
+                 * result.info structure:
+                 * {
+                 *   public_id: "...",
+                 *   secure_url: "https://res.cloudinary.com/...",
+                 *   url: "http://res.cloudinary.com/...",
+                 *   format: "jpg",
+                 *   resource_type: "image",
+                 *   bytes: 123456,
+                 *   width: 1920,
+                 *   height: 1080,
+                 *   ...
+                 * }
+                 *
+                 * PENTING: Gunakan secure_url (HTTPS)!
+                 */
+                const imageUrl = result.info.secure_url;
+
+                // Check jika sudah ada (prevent duplikat)
+                if (!uploadedImages.includes(imageUrl)) {
+                  uploadedImages.push(imageUrl);
+                  updateImagePreview();
+                }
+              }
+            }
+          );
+        });
+      }
+
+      // ============================================
+      // UPDATE IMAGE PREVIEW
+      // ============================================
+      /**
+       * Update tampilan preview dari uploaded images
+       *
+       * Alur:
+       * 1. Check jika ada uploaded images
+       * 2. Render preview cards dengan remove buttons
+       * 3. Update image count
+       */
+      function updateImagePreview() {
+        imageCount.textContent = uploadedImages.length;
+
+        if (uploadedImages.length === 0) {
+          uploadedImagesContainer.style.display = 'none';
+          return;
+        }
+
+        uploadedImagesContainer.style.display = 'block';
+
+        uploadedImagesPreview.innerHTML = uploadedImages
+          .map(
+            (imageUrl, index) => `
+          <div class="image-preview-card">
+            <img src="${imageUrl}" alt="Gambar ${index + 1}" loading="lazy" />
+            <button
+              type="button"
+              class="image-preview-remove"
+              onclick="removeImage(${index})"
+              title="Hapus gambar"
+            >
+              ×
+            </button>
+          </div>
+        `
+          )
+          .join('');
+      }
+
+      // ============================================
+      // REMOVE IMAGE FROM PREVIEW
+      // ============================================
+      /**
+       * Remove uploaded image dari array & update preview
+       *
+       * @param {number} index - Index gambar di array
+       */
+      function removeImage(index) {
+        uploadedImages.splice(index, 1);
+        updateImagePreview();
+      }
+
+      // ============================================
+      // RESET POST FORM
+      // ============================================
+      function resetPostForm() {
+        uploadedImages = [];
+        updateImagePreview();
+        postForm.reset();
+        updateCounters();
+      }
+
+      // ============================================
+      // UPDATE TEXT COUNTERS
+      // ============================================
+      function updateCounters() {
+        const titleLength = postTitleInput.value.length;
+        const contentLength = postContentInput.value.length;
+
+        titleCounter.textContent = `${titleLength} / 200 karakter`;
+        contentCounter.textContent = `${contentLength} / 5000 karakter`;
+      }
+
+      // ============================================
+      // HANDLE FORM SUBMIT
+      // ============================================
+      /**
+       * Submit postingan ke API
+       *
+       * Alur:
+       * 1. Validate input (title, content)
+       * 2. Build payload dengan uploaded image URLs
+       * 3. POST ke /api/posts/create
+       * 4. Handle response
+       * 5. Redirect ke posts page
+       *
+       * PENTING:
+       * - Gambar SUDAH di-upload ke Cloudinary
+       * - Kita hanya pass URLs ke API
+       * - API store URLs di database (bukan file binary)
+       */
+      postForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        errorState.style.display = 'none';
+
+        if (isSubmitting) return;
+
+        // ============================================
+        // VALIDATE INPUT
+        // ============================================
+        const title = postTitleInput.value.trim();
+        const content = postContentInput.value.trim();
+
+        if (!title || title.length < 5) {
+          showError('Judul postingan minimal 5 karakter');
+          postTitleInput.focus();
+          return;
+        }
+
+        if (!content || content.length < 10) {
+          showError('Konten postingan minimal 10 karakter');
+          postContentInput.focus();
+          return;
+        }
+
+        // ============================================
+        // DISABLE SUBMIT BUTTON
+        // ============================================
+        isSubmitting = true;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Mempublikasikan...';
+
+        try {
+          // ============================================
+          // BUILD PAYLOAD
+          // ============================================
+          /**
+           * Struktur payload:
+           * {
+           *   "title": "Judul postingan",
+           *   "content": "Konten postingan",
+           *   "images": [
+           *     "https://res.cloudinary.com/...",
+           *     "https://res.cloudinary.com/...",
+           *   ]
+           * }
+           *
+           * images array berisi URLs dari Cloudinary
+           * API akan store URLs ini di database posts & post_images tables
+           */
+          const payload = {
+            title,
+            content,
+            images: uploadedImages, // Array of Cloudinary secure_urls
+          };
+
+          // ============================================
+          // SEND POST REQUEST
+          // ============================================
+          const response = await fetchWithAuth(API_POST_CREATE, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.message || 'Gagal mempublikasikan postingan');
+          }
+
+          // ============================================
+          // SUCCESS
+          // ============================================
+          showSuccess(result.message || 'Postingan berhasil dipublikasikan!');
+
+          // Reset form
+          resetPostForm();
+
+          // Redirect setelah 2 detik
+          setTimeout(() => {
+            window.location.href = '/user/posts.html';
+          }, 2000);
+        } catch (error) {
+          showError(error.message);
+        } finally {
+          isSubmitting = false;
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Publikasikan Postingan';
+        }
+      });
+
+      // ============================================
+      // TEXT INPUT COUNTERS
+      // ============================================
+      postTitleInput.addEventListener('input', updateCounters);
+      postContentInput.addEventListener('input', updateCounters);
+
+      // ============================================
+      // LOGOUT HANDLER
+      // ============================================
+      logoutBtn.addEventListener('click', () => {
+        if (confirm('Apakah Anda yakin ingin logout?')) {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          window.location.href = '/login.html';
+        }
+      });
+
+      // ============================================
+      // INIT
+      // ============================================
+      window.addEventListener('DOMContentLoaded', () => {
+        try {
+          checkAuth();
+          
+          // Check if Cloudinary widget is available
+          if (typeof cloudinary === 'undefined') {
+            showError('⚠️ Cloudinary widget failed to load. Silakan refresh halaman.');
+            uploadWidgetBtn.disabled = true;
+          } else {
+            setupCloudinaryWidget();
+          }
+          
+          updateCounters();
+        } catch (error) {
+          showError('Terjadi kesalahan saat mempersiapkan halaman.');
+        }
+      });
+    </script>
+  </body>
+</html>

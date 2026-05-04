@@ -1,0 +1,629 @@
+<!-- /user/index.html -->
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Alumni Dashboard - Website Alumni SMA" />
+    <title>Alumni Dashboard - Website Alumni SMA</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/style.global.css" />
+    <link rel="stylesheet" href="/css/style.dashboard.css" />
+  </head>
+  <body>
+    <!-- DASHBOARD WRAPPER -->
+    <div class="dashboard-wrapper">
+      <!-- HEADER -->
+      <header class="dashboard-header">
+        <div class="dashboard-header-left">
+          <h1 class="dashboard-header-title">Alumni Dashboard</h1>
+        </div>
+
+        <div class="dashboard-header-right">
+          <div class="dashboard-user-info">
+            <div>
+              <p class="dashboard-user-name" id="userName">User</p>
+              <p class="dashboard-user-role">Alumni</p>
+            </div>
+            <button class="dashboard-logout-btn" id="logoutBtn">Logout</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- SIDEBAR NAVIGATION -->
+      <aside class="dashboard-sidebar">
+        <nav class="dashboard-nav">
+          <div class="dashboard-nav-section">Menu Utama</div>
+          <li class="dashboard-nav-item">
+            <a href="/user/index.html" class="dashboard-nav-link active">
+              <span class="dashboard-nav-icon">👤</span>
+              <span>Profil</span>
+            </a>
+          </li>
+          <li class="dashboard-nav-item">
+            <a href="/user/posts.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">✍️</span>
+              <span>Postingan</span>
+            </a>
+          </li>
+          <li class="dashboard-nav-item">
+            <a href="/user/gallery.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">🖼️</span>
+              <span>Galeri</span>
+            </a>
+          </li>
+
+          <div class="dashboard-nav-section">Akun</div>
+          <li class="dashboard-nav-item">
+            <a href="/user/password.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">🔐</span>
+              <span>Ganti Password</span>
+            </a>
+          </li>
+        </nav>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="dashboard-main">
+        <!-- BREADCRUMB -->
+        <nav class="dashboard-breadcrumb">
+          <a href="/user/">Dashboard</a> / <span>Profil</span>
+        </nav>
+
+        <!-- PAGE HEADER -->
+        <div class="dashboard-page-header">
+          <h2 class="dashboard-page-title">Edit Profil Anda</h2>
+        </div>
+
+        <!-- LOADING STATE -->
+        <div id="loadingState" style="display: none">
+          <div class="alert alert-info">
+            <p>Memuat data profil...</p>
+          </div>
+        </div>
+
+        <!-- ERROR STATE -->
+        <div id="errorState" class="alert alert-error" style="display: none">
+          <p id="errorMessage"></p>
+        </div>
+
+        <!-- SUCCESS STATE -->
+        <div id="successState" class="alert alert-success" style="display: none">
+          <p id="successMessage"></p>
+        </div>
+
+        <!-- PROFILE FORM -->
+        <form id="profileForm" class="card">
+          <div class="card-header">
+            <h3>Informasi Pribadi</h3>
+          </div>
+
+          <div class="card-body">
+            <!-- FULL NAME (READ ONLY) -->
+            <div class="form-group">
+              <label for="fullName">Nama Lengkap</label>
+              <input
+                type="text"
+                id="fullName"
+                name="fullName"
+                disabled
+                style="background-color: var(--color-gray-100)"
+              />
+              <small style="color: var(--color-text-light)">Tidak bisa diubah. Hubungi admin untuk perubahan.</small>
+            </div>
+
+            <!-- EMAIL (READ ONLY) -->
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" disabled style="background-color: var(--color-gray-100)" />
+              <small style="color: var(--color-text-light)">Email tidak bisa diubah.</small>
+            </div>
+
+            <!-- CLASS & GRADUATION YEAR (READ ONLY) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg)">
+              <div class="form-group">
+                <label for="kelas">Kelas</label>
+                <input type="text" id="kelas" name="kelas" disabled style="background-color: var(--color-gray-100)" />
+              </div>
+
+              <div class="form-group">
+                <label for="tahunLulus">Tahun Lulus</label>
+                <input
+                  type="text"
+                  id="tahunLulus"
+                  name="tahunLulus"
+                  disabled
+                  style="background-color: var(--color-gray-100)"
+                />
+              </div>
+            </div>
+
+            <!-- EDITABLE FIELDS -->
+            <hr style="margin: var(--spacing-lg) 0; border: none; border-top: 1px solid var(--color-gray-200)" />
+
+            <div class="form-group">
+              <label for="phone">Nomor Telepon</label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                placeholder="081234567890"
+                maxlength="15"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="city">Kota</label>
+              <input type="text" id="city" name="city" placeholder="Jakarta" maxlength="50" />
+            </div>
+
+            <div class="form-group">
+              <label for="occupation">Profesi/Pekerjaan</label>
+              <input
+                type="text"
+                id="occupation"
+                name="occupation"
+                placeholder="Software Engineer"
+                maxlength="100"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="company">Perusahaan</label>
+              <input type="text" id="company" name="company" placeholder="PT TechnoIndo" maxlength="100" />
+            </div>
+
+            <div class="form-group">
+              <label for="bio">Biografi</label>
+              <textarea
+                id="bio"
+                name="bio"
+                placeholder="Ceritakan tentang diri Anda..."
+                maxlength="1000"
+                rows="4"
+              ></textarea>
+              <small style="color: var(--color-text-light)" id="bioCounter">0 / 1000 karakter</small>
+            </div>
+
+            <div class="form-group">
+              <label for="linkedinUrl">URL LinkedIn</label>
+              <input
+                type="url"
+                id="linkedinUrl"
+                name="linkedinUrl"
+                placeholder="https://linkedin.com/in/your-profile"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="instagramHandle">Instagram Handle</label>
+              <input
+                type="text"
+                id="instagramHandle"
+                name="instagramHandle"
+                placeholder="@your_instagram"
+                maxlength="50"
+              />
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+              Simpan Perubahan
+            </button>
+            <button type="reset" class="btn btn-secondary" onclick="resetForm()">
+              Batalkan
+            </button>
+          </div>
+        </form>
+
+        <!-- PASSWORD REQUEST SECTION -->
+        <div class="card" style="margin-top: var(--spacing-2xl)">
+          <div class="card-header">
+            <h3>Keamanan Akun</h3>
+          </div>
+
+          <div class="card-body">
+            <p style="color: var(--color-text-secondary); margin-bottom: var(--spacing-lg)">
+              Jika Anda lupa password atau ingin mengubahnya, Anda dapat mengajukan permintaan kepada admin.
+              Admin akan memverifikasi identitas Anda dan memberikan password sementara.
+            </p>
+
+            <div id="passwordRequestStatus" style="margin-bottom: var(--spacing-lg)">
+              <!-- Status akan ditampilkan di sini -->
+            </div>
+
+            <button class="btn btn-warning" id="requestPasswordBtn">
+              Ajukan Permintaan Password Baru
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+      /**
+       * ALUMNI DASHBOARD LOGIC
+       *
+       * Alur:
+       * 1. Check authentication
+       * 2. Load profil dari API
+       * 3. Display profil data
+       * 4. Handle form submit (PUT profil)
+       * 5. Handle password request
+       */
+
+      // ============================================
+      // CONSTANTS
+      // ============================================
+      const TOKEN_KEY = 'auth_token';
+      const USER_KEY = 'auth_user';
+      const API_PROFILE = '/api/alumni/profile';
+      const API_PASSWORD_REQUEST = '/api/auth/request-password';
+
+      // ============================================
+      // STATE
+      // ============================================
+      let currentUser = null;
+      let originalProfileData = null;
+      let isLoading = false;
+
+      // ============================================
+      // DOM ELEMENTS
+      // ============================================
+      const profileForm = document.getElementById('profileForm');
+      const loadingState = document.getElementById('loadingState');
+      const errorState = document.getElementById('errorState');
+      const errorMessage = document.getElementById('errorMessage');
+      const successState = document.getElementById('successState');
+      const successMessage = document.getElementById('successMessage');
+      const submitBtn = document.getElementById('submitBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const requestPasswordBtn = document.getElementById('requestPasswordBtn');
+      const passwordRequestStatus = document.getElementById('passwordRequestStatus');
+      const bioInput = document.getElementById('bio');
+      const bioCounter = document.getElementById('bioCounter');
+      const userName = document.getElementById('userName');
+
+      // Form fields
+      const fullNameInput = document.getElementById('fullName');
+      const emailInput = document.getElementById('email');
+      const kelasInput = document.getElementById('kelas');
+      const tahunLulusInput = document.getElementById('tahunLulus');
+      const phoneInput = document.getElementById('phone');
+      const cityInput = document.getElementById('city');
+      const occupationInput = document.getElementById('occupation');
+      const companyInput = document.getElementById('company');
+      const linkedinUrlInput = document.getElementById('linkedinUrl');
+      const instagramHandleInput = document.getElementById('instagramHandle');
+
+      // ============================================
+      // CHECK AUTHENTICATION
+      // ============================================
+      function checkAuth() {
+        const token = localStorage.getItem(TOKEN_KEY);
+        const userStr = localStorage.getItem(USER_KEY);
+
+        if (!token || !userStr) {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        try {
+          const user = JSON.parse(userStr);
+
+          if (user.role !== 'alumni') {
+            alert('Halaman ini hanya untuk alumni');
+            window.location.href = '/';
+          }
+
+          return user;
+        } catch (error) {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          window.location.href = '/login.html';
+        }
+      }
+
+      // ============================================
+      // HELPER: FETCH WITH AUTH
+      // ============================================
+      async function fetchWithAuth(url, options = {}) {
+        const token = localStorage.getItem(TOKEN_KEY);
+
+        const headers = {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        };
+
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
+        return fetch(url, {
+          ...options,
+          headers,
+        });
+      }
+
+      // ============================================
+      // HELPER: SHOW ERROR
+      // ============================================
+      function showError(message) {
+        errorMessage.textContent = message;
+        errorState.style.display = 'block';
+        successState.style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // ============================================
+      // HELPER: SHOW SUCCESS
+      // ============================================
+      function showSuccess(message) {
+        successMessage.textContent = message;
+        successState.style.display = 'block';
+        errorState.style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        setTimeout(() => {
+          successState.style.display = 'none';
+        }, 3000);
+      }
+
+      // ============================================
+      // LOAD PROFILE
+      // ============================================
+      /**
+       * Fetch profil dari API
+       *
+       * Alur:
+       * 1. Show loading state
+       * 2. GET /api/alumni/profile
+       * 3. Populate form fields
+       * 4. Store original data untuk reset
+       */
+      async function loadProfile() {
+        if (isLoading) return;
+
+        isLoading = true;
+        loadingState.style.display = 'block';
+        errorState.style.display = 'none';
+
+        try {
+          const response = await fetchWithAuth(API_PROFILE);
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Gagal memuat profil');
+          }
+
+          const { user, profile } = data.data;
+
+          // ============================================
+          // POPULATE FORM
+          // ============================================
+          fullNameInput.value = user.full_name;
+          emailInput.value = user.email;
+          kelasInput.value = profile.kelas;
+          tahunLulusInput.value = profile.tahun_lulus;
+          phoneInput.value = profile.phone || '';
+          cityInput.value = profile.city || '';
+          occupationInput.value = profile.occupation || '';
+          companyInput.value = profile.company || '';
+          bioInput.value = profile.bio || '';
+          linkedinUrlInput.value = profile.linkedin_url || '';
+          instagramHandleInput.value = profile.instagram_handle || '';
+
+          userName.textContent = user.full_name;
+
+          // Store original data
+          originalProfileData = {
+            phone: profile.phone || '',
+            city: profile.city || '',
+            occupation: profile.occupation || '',
+            company: profile.company || '',
+            bio: profile.bio || '',
+            linkedin_url: profile.linkedin_url || '',
+            instagram_handle: profile.instagram_handle || '',
+          };
+
+          // Update bio counter
+          updateBioCounter();
+        } catch (error) {
+          console.error('Error loading profile:', error);
+          showError(error.message);
+        } finally {
+          isLoading = false;
+          loadingState.style.display = 'none';
+        }
+      }
+
+      // ============================================
+      // RESET FORM
+      // ============================================
+      function resetForm() {
+        if (originalProfileData) {
+          phoneInput.value = originalProfileData.phone;
+          cityInput.value = originalProfileData.city;
+          occupationInput.value = originalProfileData.occupation;
+          companyInput.value = originalProfileData.company;
+          bioInput.value = originalProfileData.bio;
+          linkedinUrlInput.value = originalProfileData.linkedin_url;
+          instagramHandleInput.value = originalProfileData.instagram_handle;
+
+          updateBioCounter();
+        }
+      }
+
+      // ============================================
+      // UPDATE BIO COUNTER
+      // ============================================
+      function updateBioCounter() {
+        const length = bioInput.value.length;
+        bioCounter.textContent = `${length} / 1000 karakter`;
+
+        if (length > 900) {
+          bioCounter.style.color = '#f59e0b';
+        } else {
+          bioCounter.style.color = 'var(--color-text-light)';
+        }
+      }
+
+      // ============================================
+      // HANDLE FORM SUBMIT
+      // ============================================
+      /**
+       * Update profil via API
+       *
+       * Alur:
+       * 1. Validate input
+       * 2. Disable button
+       * 3. PUT /api/alumni/profile
+       * 4. Handle response
+       * 5. Update original data
+       */
+      profileForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        errorState.style.display = 'none';
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Menyimpan...';
+
+        try {
+          // ============================================
+          // BUILD PAYLOAD
+          // ============================================
+          const payload = {
+            phone: phoneInput.value.trim() || null,
+            city: cityInput.value.trim() || null,
+            occupation: occupationInput.value.trim() || null,
+            company: companyInput.value.trim() || null,
+            bio: bioInput.value.trim() || null,
+            linkedin_url: linkedinUrlInput.value.trim() || null,
+            instagram_handle: instagramHandleInput.value.trim() || null,
+          };
+
+          // ============================================
+          // SEND PUT REQUEST
+          // ============================================
+          const response = await fetchWithAuth(API_PROFILE, {
+            method: 'PUT',
+            body: JSON.stringify(payload),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.message || 'Gagal menyimpan profil');
+          }
+
+          // ============================================
+          // SUCCESS
+          // ============================================
+          showSuccess('Profil berhasil diperbarui!');
+
+          // Update original data
+          originalProfileData = payload;
+        } catch (error) {
+          console.error('Update profile error:', error);
+          showError(error.message);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Simpan Perubahan';
+        }
+      });
+
+      // ============================================
+      // BIO INPUT COUNTER
+      // ============================================
+      bioInput.addEventListener('input', updateBioCounter);
+
+      // ============================================
+      // REQUEST PASSWORD
+      // ============================================
+      /**
+       * Submit password request ke API
+       *
+       * Alur:
+       * 1. Show confirmation dialog
+       * 2. POST /api/auth/request-password
+       * 3. Update status display
+       */
+      async function requestPassword() {
+        if (
+          !confirm(
+            'Anda akan mengajukan permintaan password baru kepada admin. Lanjutkan?'
+          )
+        ) {
+          return;
+        }
+
+        requestPasswordBtn.disabled = true;
+        requestPasswordBtn.textContent = 'Mengirim...';
+
+        try {
+          const response = await fetchWithAuth(API_PASSWORD_REQUEST, {
+            method: 'POST',
+            body: JSON.stringify({}),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.message || 'Gagal mengirim permintaan');
+          }
+
+          // ============================================
+          // SUCCESS
+          // ============================================
+          showSuccess(result.message);
+
+          // Update button
+          requestPasswordBtn.textContent = 'Permintaan Dikirim ✓';
+          requestPasswordBtn.disabled = true;
+
+          // Show status
+          passwordRequestStatus.innerHTML = `
+            <div class="alert alert-info">
+              <p>
+                <strong>Status Pending:</strong> Admin akan meninjau permintaan Anda.
+                Anda akan menerima password sementara via email/pesan segera setelah disetujui.
+              </p>
+            </div>
+          `;
+        } catch (error) {
+          console.error('Password request error:', error);
+          showError(error.message);
+          requestPasswordBtn.disabled = false;
+          requestPasswordBtn.textContent = 'Ajukan Permintaan Password Baru';
+        }
+      }
+
+      // ============================================
+      // LOGOUT HANDLER
+      // ============================================
+      logoutBtn.addEventListener('click', () => {
+        if (confirm('Apakah Anda yakin ingin logout?')) {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          window.location.href = '/login.html';
+        }
+      });
+
+      // ============================================
+      // REQUEST PASSWORD BUTTON
+      // ============================================
+      requestPasswordBtn.addEventListener('click', requestPassword);
+
+      // ============================================
+      // INIT
+      // ============================================
+      window.addEventListener('DOMContentLoaded', () => {
+        currentUser = checkAuth();
+        loadProfile();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,725 @@
+<!-- /admin/moderation.html -->
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Moderasi Postingan - Admin Dashboard" />
+    <title>Moderasi Postingan - Admin Dashboard</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/style.global.css" />
+    <link rel="stylesheet" href="/css/style.dashboard.css" />
+  </head>
+  <body>
+    <!-- DASHBOARD WRAPPER -->
+    <div class="dashboard-wrapper">
+      <!-- HEADER -->
+      <header class="dashboard-header">
+        <div class="dashboard-header-left">
+          <h1 class="dashboard-header-title">Admin Dashboard</h1>
+        </div>
+
+        <div class="dashboard-header-right">
+          <div class="dashboard-user-info">
+            <div>
+              <p class="dashboard-user-name" id="userName">User</p>
+              <p class="dashboard-user-role" id="userRole">admin</p>
+            </div>
+            <button class="dashboard-logout-btn" id="logoutBtn">Logout</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- SIDEBAR NAVIGATION -->
+      <aside class="dashboard-sidebar">
+        <nav class="dashboard-nav">
+          <div class="dashboard-nav-section">Dashboard</div>
+          <li class="dashboard-nav-item">
+            <a href="/admin/index.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">📊</span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+
+          <div class="dashboard-nav-section">Moderasi</div>
+          <li class="dashboard-nav-item">
+            <a href="/admin/moderation.html" class="dashboard-nav-link active">
+              <span class="dashboard-nav-icon">✍️</span>
+              <span>Postingan</span>
+            </a>
+          </li>
+          <li class="dashboard-nav-item">
+            <a href="/admin/gallery-moderation.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">🖼️</span>
+              <span>Galeri</span>
+            </a>
+          </li>
+          <li class="dashboard-nav-item">
+            <a href="/admin/password-requests.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">🔑</span>
+              <span>Password</span>
+            </a>
+          </li>
+
+          <div class="dashboard-nav-section">Manajemen</div>
+          <li class="dashboard-nav-item">
+            <a href="/admin/alumni.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">👥</span>
+              <span>Alumni</span>
+            </a>
+          </li>
+          <li class="dashboard-nav-item">
+            <a href="/admin/users.html" class="dashboard-nav-link">
+              <span class="dashboard-nav-icon">🔐</span>
+              <span>Admin</span>
+            </a>
+          </li>
+        </nav>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="dashboard-main">
+        <!-- BREADCRUMB -->
+        <nav class="dashboard-breadcrumb">
+          <a href="/admin/">Dashboard</a> / <span>Moderasi Postingan</span>
+        </nav>
+
+        <!-- PAGE HEADER -->
+        <div class="dashboard-page-header">
+          <h2 class="dashboard-page-title">Moderasi Postingan</h2>
+          <div class="dashboard-page-actions">
+            <select id="statusFilter" class="btn btn-secondary">
+              <option value="">Semua Status</option>
+              <option value="pending" selected>Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- FILTER & SEARCH -->
+        <div class="card" style="margin-bottom: var(--spacing-2xl)">
+          <div class="table-header">
+            <div class="table-controls" style="width: 100%">
+              <input
+                type="text"
+                id="searchInput"
+                class="table-search"
+                placeholder="Cari judul postingan..."
+                aria-label="Cari postingan"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- LOADING STATE -->
+        <div id="loadingState" style="display: none">
+          <div class="table-loading">
+            <div class="spinner"></div>
+            <p>Memuat postingan...</p>
+          </div>
+        </div>
+
+        <!-- ERROR STATE -->
+        <div id="errorState" class="alert alert-error" style="display: none">
+          <p id="errorMessage"></p>
+        </div>
+
+        <!-- SUCCESS STATE -->
+        <div id="successState" class="alert alert-success" style="display: none">
+          <p id="successMessage"></p>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-wrapper" id="tableContainer">
+          <!-- Table akan di-render oleh JavaScript -->
+        </div>
+      </main>
+    </div>
+
+    <!-- DETAIL MODAL -->
+    <div class="modal-overlay" id="detailModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="modalTitle">Detail Postingan</h2>
+          <button class="modal-close-btn" onclick="closeModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- POST CONTENT -->
+          <div id="modalContent">
+            <!-- Content akan di-render oleh JavaScript -->
+          </div>
+
+          <!-- MODERATION FORM (jika pending) -->
+          <div id="moderationForm" style="display: none">
+            <div class="form-group">
+              <label for="moderationAction" class="required">Aksi</label>
+              <select id="moderationAction" class="form-control">
+                <option value="">-- Pilih Aksi --</option>
+                <option value="approve">Setujui (Approve)</option>
+                <option value="reject">Tolak (Reject)</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="rejectionReasonGroup" style="display: none">
+              <label for="rejectionReason">Alasan Penolakan</label>
+              <textarea
+                id="rejectionReason"
+                class="form-control"
+                placeholder="Jelaskan mengapa postingan ini ditolak..."
+                rows="4"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal()">Tutup</button>
+          <button class="btn btn-primary" id="submitModerationBtn" style="display: none">
+            Proses Moderasi
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JAVASCRIPT MODERATION LOGIC -->
+    <script>
+      /**
+       * POSTINGAN MODERATION PAGE LOGIC
+       *
+       * Alur:
+       * 1. Check authentication
+       * 2. Load & display pending postingan dalam tabel
+       * 3. Setup filter & search
+       * 4. Handle approve/reject actions
+       * 5. Show detail modal
+       */
+
+      // ============================================
+      // CONSTANTS
+      // ============================================
+      const TOKEN_KEY = 'auth_token';
+      const USER_KEY = 'auth_user';
+      const API_POSTS = '/api/posts/list';
+      const API_MODERATION = '/api/admin/posts-moderation';
+
+      // ============================================
+      // STATE
+      // ============================================
+      let allPosts = [];
+      let currentPost = null;
+      let currentStatusFilter = 'pending';
+      let currentSearchQuery = '';
+      let isLoading = false;
+
+      // ============================================
+      // DOM ELEMENTS
+      // ============================================
+      const loadingState = document.getElementById('loadingState');
+      const errorState = document.getElementById('errorState');
+      const errorMessage = document.getElementById('errorMessage');
+      const successState = document.getElementById('successState');
+      const successMessage = document.getElementById('successMessage');
+      const tableContainer = document.getElementById('tableContainer');
+      const statusFilter = document.getElementById('statusFilter');
+      const searchInput = document.getElementById('searchInput');
+      const detailModal = document.getElementById('detailModal');
+      const moderationForm = document.getElementById('moderationForm');
+      const moderationAction = document.getElementById('moderationAction');
+      const rejectionReasonGroup = document.getElementById('rejectionReasonGroup');
+      const rejectionReason = document.getElementById('rejectionReason');
+      const submitModerationBtn = document.getElementById('submitModerationBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      // ============================================
+      // CHECK AUTHENTICATION
+      // ============================================
+      function checkAuth() {
+        const token = localStorage.getItem(TOKEN_KEY);
+        const userStr = localStorage.getItem(USER_KEY);
+
+        if (!token || !userStr) {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        try {
+          const user = JSON.parse(userStr);
+
+          if (user.role !== 'admin' && user.role !== 'super_admin') {
+            alert('Anda tidak memiliki akses');
+            window.location.href = '/';
+          }
+
+          return user;
+        } catch (error) {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          window.location.href = '/login.html';
+        }
+      }
+
+      // ============================================
+      // HELPER: FETCH WITH AUTH
+      // ============================================
+      async function fetchWithAuth(url, options = {}) {
+        const token = localStorage.getItem(TOKEN_KEY);
+
+        const headers = {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        };
+
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
+        return fetch(url, {
+          ...options,
+          headers,
+        });
+      }
+
+      // ============================================
+      // HELPER: SHOW ERROR
+      // ============================================
+      function showError(message) {
+        errorMessage.textContent = message;
+        errorState.style.display = 'block';
+        successState.style.display = 'none';
+      }
+
+      // ============================================
+      // HELPER: SHOW SUCCESS
+      // ============================================
+      function showSuccess(message) {
+        successMessage.textContent = message;
+        successState.style.display = 'block';
+        errorState.style.display = 'none';
+
+        setTimeout(() => {
+          successState.style.display = 'none';
+        }, 3000);
+      }
+
+      // ============================================
+      // LOAD POSTINGAN
+      // ============================================
+      /**
+       * Fetch postingan dengan filter status
+       *
+       * Alur:
+       * 1. Show loading state
+       * 2. Build query params
+       * 3. Fetch dari API
+       * 4. Render tabel
+       * 5. Handle error
+       */
+      async function loadPosts() {
+        if (isLoading) return;
+
+        isLoading = true;
+        loadingState.style.display = 'block';
+        errorState.style.display = 'none';
+        tableContainer.innerHTML = '';
+
+        try {
+          const params = new URLSearchParams();
+          if (currentStatusFilter) {
+            params.append('status', currentStatusFilter);
+          }
+
+          const url = `${API_POSTS}?${params.toString()}`;
+          const response = await fetchWithAuth(url);
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Gagal memuat postingan');
+          }
+
+          allPosts = data.data.posts;
+          renderPostsTable();
+        } catch (error) {
+          console.error('Error loading posts:', error);
+          showError(error.message);
+          tableContainer.innerHTML = '';
+        } finally {
+          isLoading = false;
+          loadingState.style.display = 'none';
+        }
+      }
+
+      // ============================================
+      // RENDER POSTS TABLE
+      // ============================================
+      /**
+       * Render postingan ke dalam tabel
+       *
+       * Setiap row menampilkan:
+       * - Judul postingan
+       * - Penulis
+       * - Status (badge)
+       * - Tanggal
+       * - Action buttons (Lihat Detail, Approve, Reject)
+       */
+      function renderPostsTable() {
+        if (allPosts.length === 0) {
+          tableContainer.innerHTML = `
+            <div class="table-empty">
+              <p>Tidak ada postingan ${currentStatusFilter || ''}</p>
+            </div>
+          `;
+          return;
+        }
+
+        const html = `
+          <div class="table-header">
+            <h3>Daftar Postingan</h3>
+            <div style="font-size: 0.9rem; color: var(--color-text-secondary)">
+              ${allPosts.length} postingan ditemukan
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Judul</th>
+                <th>Penulis</th>
+                <th>Status</th>
+                <th>Tanggal</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${allPosts
+                .map(
+                  (post) => `
+                <tr>
+                  <td>
+                    <strong>${post.title}</strong><br>
+                    <small style="color: var(--color-text-secondary); display: block; margin-top: 4px;">
+                      ${post.content.substring(0, 60)}...
+                    </small>
+                  </td>
+                  <td>${post.full_name}</td>
+                  <td>
+                    <span class="badge badge-${post.status}">
+                      ${post.status.charAt(0).toUpperCase() + post.status.slice(1)}
+                    </span>
+                  </td>
+                  <td>${new Date(post.created_at).toLocaleDateString('id-ID')}</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="action-btn" onclick="showPostDetail(${post.post_id})">
+                        Lihat
+                      </button>
+                      ${
+                        post.status === 'pending'
+                          ? `
+                        <button class="action-btn action-btn-approve" onclick="approvePost(${post.post_id})">
+                          Approve
+                        </button>
+                        <button class="action-btn action-btn-reject" onclick="openRejectDialog(${post.post_id})">
+                          Reject
+                        </button>
+                      `
+                          : ''
+                      }
+                    </div>
+                  </td>
+                </tr>
+              `
+                )
+                .join('')}
+            </tbody>
+          </table>
+        `;
+
+        tableContainer.innerHTML = html;
+      }
+
+      // ============================================
+      // SHOW POST DETAIL MODAL
+      // ============================================
+      /**
+       * Tampilkan detail postingan dalam modal
+       *
+       * @param {number} postId - Post ID
+       */
+      function showPostDetail(postId) {
+        const post = allPosts.find((p) => p.post_id === postId);
+
+        if (!post) {
+          showError('Postingan tidak ditemukan');
+          return;
+        }
+
+        currentPost = post;
+
+        // ============================================
+        // RENDER POST CONTENT
+        // ============================================
+        const contentHtml = `
+          <div style="margin-bottom: var(--spacing-lg)">
+            <h3 style="margin-top: 0">${post.title}</h3>
+
+            <div style="display: flex; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg); flex-wrap: wrap">
+              <div>
+                <strong>Penulis:</strong><br>
+                <span>${post.full_name} (@${post.username})</span>
+              </div>
+              <div>
+                <strong>Status:</strong><br>
+                <span class="badge badge-${post.status}">
+                  ${post.status.charAt(0).toUpperCase() + post.status.slice(1)}
+                </span>
+              </div>
+              <div>
+                <strong>Tanggal:</strong><br>
+                <span>${new Date(post.created_at).toLocaleDateString('id-ID')}</span>
+              </div>
+            </div>
+
+            <div style="background-color: var(--color-gray-50); padding: var(--spacing-lg); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg)">
+              <strong style="display: block; margin-bottom: var(--spacing-md)">Konten:</strong>
+              <p>${post.content}</p>
+            </div>
+
+            ${
+              post.image_count > 0
+                ? `
+              <div style="margin-bottom: var(--spacing-lg)">
+                <strong style="display: block; margin-bottom: var(--spacing-md)">Gambar (${post.image_count}):</strong>
+                <p style="font-size: 0.9rem; color: var(--color-text-secondary)">
+                  Postingan ini memiliki ${post.image_count} gambar
+                </p>
+              </div>
+            `
+                : ''
+            }
+
+            ${
+              post.status === 'rejected' && post.rejection_reason
+                ? `
+              <div style="background-color: #fef2f2; padding: var(--spacing-lg); border-radius: var(--radius-md); border-left: 4px solid var(--color-error)">
+                <strong style="display: block; margin-bottom: var(--spacing-sm)">Alasan Penolakan:</strong>
+                <p style="margin: 0; color: #991b1b">${post.rejection_reason}</p>
+              </div>
+            `
+                : ''
+            }
+          </div>
+        `;
+
+        document.getElementById('modalContent').innerHTML = contentHtml;
+
+        // ============================================
+        // SHOW MODERATION FORM (hanya untuk pending)
+        // ============================================
+        if (post.status === 'pending') {
+          moderationForm.style.display = 'block';
+          submitModerationBtn.style.display = 'block';
+          moderationAction.value = '';
+          rejectionReason.value = '';
+          rejectionReasonGroup.style.display = 'none';
+        } else {
+          moderationForm.style.display = 'none';
+          submitModerationBtn.style.display = 'none';
+        }
+
+        // ============================================
+        // SHOW MODAL
+        // ============================================
+        detailModal.classList.add('show');
+      }
+
+      // ============================================
+      // CLOSE MODAL
+      // ============================================
+      function closeModal() {
+        detailModal.classList.remove('show');
+        currentPost = null;
+      }
+
+      // ============================================
+      // OPEN REJECT DIALOG
+      // ============================================
+      /**
+       * Open modal dengan form untuk reject postingan
+       *
+       * @param {number} postId - Post ID
+       */
+      function openRejectDialog(postId) {
+        showPostDetail(postId);
+        moderationAction.value = 'reject';
+        rejectionReasonGroup.style.display = 'block';
+        rejectionReason.focus();
+      }
+
+      // ============================================
+      // HANDLE MODERATION ACTION CHANGE
+      // ============================================
+      /**
+       * Show rejection reason field hanya jika action = reject
+       */
+      moderationAction.addEventListener('change', () => {
+        if (moderationAction.value === 'reject') {
+          rejectionReasonGroup.style.display = 'block';
+          rejectionReason.focus();
+        } else {
+          rejectionReasonGroup.style.display = 'none';
+        }
+      });
+
+      // ============================================
+      // SUBMIT MODERATION
+      // ============================================
+      /**
+       * Submit moderasi ke API
+       *
+       * Alur:
+       * 1. Validate input
+       * 2. Disable button
+       * 3. Send PUT request ke /api/admin/posts-moderation
+       * 4. Handle response
+       * 5. Reload posts table
+       * 6. Close modal
+       */
+      async function submitModeration() {
+        if (!currentPost) {
+          showError('Postingan tidak ditemukan');
+          return;
+        }
+
+        const action = moderationAction.value;
+
+        if (!action) {
+          showError('Pilih aksi terlebih dahulu');
+          return;
+        }
+
+        if (action === 'reject' && !rejectionReason.value.trim()) {
+          showError('Alasan penolakan wajib diisi');
+          return;
+        }
+
+        submitModerationBtn.disabled = true;
+        submitModerationBtn.textContent = 'Memproses...';
+
+        try {
+          const payload = {
+            post_id: currentPost.post_id,
+            action: action,
+          };
+
+          if (action === 'reject') {
+            payload.rejection_reason = rejectionReason.value.trim();
+          }
+
+          const response = await fetchWithAuth(API_MODERATION, {
+            method: 'PUT',
+            body: JSON.stringify(payload),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.message || 'Gagal memproses moderasi');
+          }
+
+          // ============================================
+          // SUCCESS
+          // ============================================
+          showSuccess(result.message || `Postingan berhasil di-${action}`);
+          closeModal();
+          loadPosts(); // Reload table
+        } catch (error) {
+          console.error('Moderation error:', error);
+          showError(error.message);
+        } finally {
+          submitModerationBtn.disabled = false;
+          submitModerationBtn.textContent = 'Proses Moderasi';
+        }
+      }
+
+      // ============================================
+      // QUICK ACTION: APPROVE
+      // ============================================
+      async function approvePost(postId) {
+        if (!confirm('Apakah Anda yakin ingin menyetujui postingan ini?')) {
+          return;
+        }
+
+        try {
+          const response = await fetchWithAuth(API_MODERATION, {
+            method: 'PUT',
+            body: JSON.stringify({
+              post_id: postId,
+              action: 'approve',
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.message);
+          }
+
+          showSuccess('Postingan berhasil disetujui');
+          loadPosts();
+        } catch (error) {
+          showError(error.message);
+        }
+      }
+
+      // ============================================
+      // EVENT LISTENERS
+      // ============================================
+
+      // Status filter change
+      statusFilter.addEventListener('change', () => {
+        currentStatusFilter = statusFilter.value;
+        loadPosts();
+      });
+
+      // Search input
+      let searchTimeout;
+      searchInput.addEventListener('input', () => {
+        // TODO: Implement search filtering
+      });
+
+      // Moderation submit button
+      submitModerationBtn.addEventListener('click', submitModeration);
+
+      // Logout button
+      logoutBtn.addEventListener('click', () => {
+        if (confirm('Apakah Anda yakin ingin logout?')) {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          window.location.href = '/login.html';
+        }
+      });
+
+      // ============================================
+      // INIT
+      // ============================================
+      window.addEventListener('DOMContentLoaded', () => {
+        const user = checkAuth();
+        document.getElementById('userName').textContent = user.full_name || user.username;
+        document.getElementById('userRole').textContent =
+          user.role === 'super_admin' ? 'Super Admin' : 'Admin';
+
+        loadPosts();
+      });
+
+      // Close modal on overlay click
+      detailModal.addEventListener('click', (e) => {
+        if (e.target === detailModal) {
+          closeModal();
+        }
+      });
+    </script>
+  </body>
+</html>

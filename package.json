@@ -1,0 +1,35 @@
+{
+  "name": "website-alumni-sma",
+  "version": "1.0.0",
+  "description": "Platform Alumni SMA berbasis database relasional dengan sistem login multi-role, CRUD lengkap, moderasi konten, dan sistem approval password",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "vercel build",
+    "deploy": "vercel deploy --prod",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "alumni",
+    "sma",
+    "platform",
+    "database",
+    "vercel",
+    "tidb"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "mysql2": "^3.6.0",
+    "bcrypt": "^5.1.0",
+    "jsonwebtoken": "^9.1.0",
+    "cloudinary": "^1.40.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}

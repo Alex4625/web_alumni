@@ -1,0 +1,33 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "env": [
+    "TIDB_HOST",
+    "TIDB_PORT",
+    "TIDB_DATABASE",
+    "TIDB_USER",
+    "TIDB_PASSWORD",
+    "TIDB_ENABLE_SSL",
+    "CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
+    "SESSION_SECRET",
+    "JWT_SECRET",
+    "BCRYPT_ROUNDS",
+    "NODE_ENV",
+    "VERCEL_URL"
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "status": 404
+    }
+  ]
+}
